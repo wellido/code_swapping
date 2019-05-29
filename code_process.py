@@ -45,9 +45,15 @@ l = len(td)
 td.sort(key=take_second)
 first_p = locals()
 first_p = first_p.copy()
+print(first_p.values())
 # ...
+my_first_dic = {}
+for key in first_p.keys():
+    # print(type(first_p[key]))
+    my_first_dic[key] = first_p[key]
+# print(my_first_dic)
 first_p_cp = copy.copy(first_p)
-print(first_p_cp['ss'])
+print(my_first_dic['ss'])
 # print(ss)
 while i < l:
     cd = td[i][2] + ss[pi[i + 1]]
@@ -63,7 +69,7 @@ second_p = locals()
 second_p = second_p.copy()
 # ...
 second_p_cp = copy.copy(second_p)
-print(first_p_cp['ss'])
+print(my_first_dic['ss'])
 # print(first_p)
 # print(second_p)
 second_key = second_p.keys()
