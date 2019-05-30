@@ -10,10 +10,6 @@ def random_string(string_length=10):
     return ''.join(random.choice(letters) for i in range(string_length))
 
 
-def exec_code(code_str):
-    exec(code_str)
-
-
 def data_type_analysis(dict):
     """
 
