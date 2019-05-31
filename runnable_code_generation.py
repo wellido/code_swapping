@@ -4,10 +4,6 @@ import copy
 from results_analysis import analyze_results
 
 
-def namestr(obj, namespace):
-    return [name for name in namespace if namespace[name] is obj]
-
-
 def data_preparation(dic_json1, dic_json2, test_path):
     """
 
@@ -54,7 +50,7 @@ def data_preparation(dic_json1, dic_json2, test_path):
         random_test_data = []
 
         # fragment1 input
-        for _ in range(5):
+        for _ in range(10):
             random_test_data.append(test_generation(this_dict1[key]))
 
         dic_copy1[key] = random_test_data
@@ -75,17 +71,29 @@ def data_preparation(dic_json1, dic_json2, test_path):
     print(input_dict)
     with open(test_path, 'w') as result_file:
         json.dump(input_dict, result_file, indent=4)
+    return save_dict1, save_dict2
 
 
-def code_generation(fragment1, fragment2, dic_json):
+def code_generation(save_dict1, save_dict2, fragment1, fragment2, dic_json):
     """
 
+    :param save_dict1:
+    :param save_dict2:
     :param fragment1:
     :param fragment2:
     :param dic_json:
     :return:
     """
+    f1_result_save_path = 'results/f1_result_dict.json'
+    f2_result_save_path = 'results/f2_result_dict.json'
 
+    # original data dict
+    with open(save_dict1, 'r') as result_file:
+        save_dict1 = json.load(result_file)
+    with open(save_dict2, 'r') as result_file:
+        save_dict2 = json.load(result_file)
+
+    # generated data dict
     with open(dic_json, 'r') as result_file:
         save_dict = json.load(result_file)
 
@@ -94,96 +102,105 @@ def code_generation(fragment1, fragment2, dic_json):
     data_dict1 = save_dict['fragment1']
     data_dict2 = save_dict['fragment2']
 
+    swap_list = []
     for idx in range(len(select_v_1)):
         v_1 = select_v_1[idx]
         v_2 = select_v_2[idx]
         d_1 = data_dict1[idx]
         d_2 = data_dict2[idx]
-
         ####################################### code 1 #######################################
-        add_code_before = "for hq in " + str(d_1[v_1]) + ": \n"
-
-        # definition part
-        for key in d_1.keys():
-            if key != v_1:
-                str_line = "\t" + str(key) + " = " + str(d_1[key]) + "\n"
-                add_code_before += str_line
-            else:
-                str_line = "\t" + str(v_1) + " = hq\n"
-                add_code_before += str_line
-        add_code_before += "\tresult_save_dict = {}\n"
-        add_code_before += "\tresult_save_dict['target'] = '%s'\n" % v_1
-
-        # fragment part
-        fragment_final = ""
-        for line in fragment1.splitlines():
-            fragment_final += '\t\t' + line + "\n"
-        fragment = "\ttry: " + fragment_final
-        exception_info = """\texcept Exception as e:\n\t\tresult_save_dict['runnable'] = False
-            \n\t\twith open('results/f1_result_dict.json', 'w') as result_file:\n\t\t\tjson.dump(result_save_dict, result_file)
-            """
-        fragment = fragment + exception_info
-
-        # result process part
-        add_code_after = "\n\tresult_save_dict['runnable'] = True\n"
-        for key in d_1:
-            str_line = "\tresult_save_dict['%s'] = %s\n" % (key, key)
-            add_code_after += str_line
-
-        # result save part
-        save_line = """
-            \n\timport json
-            \n\twith open('results/f1_result_dict.json', 'w') as result_file:
-                \n\t\tjson.dump(result_save_dict, result_file)
-                \n\t\tresult_file.write("\\n")"""
-
-        run_code = add_code_before + fragment + add_code_after + save_line
-        # print(run_code)
-        code_run(run_code)
-
-        ####################################### code 2 #######################################
-        for part in range(len(v_2)):
-
-            d = d_2[part]
-            v = v_2[part]
-            add_code_before = "for hq in " + str(d[v]) + ": \n"
-
+        result_v2_list = [0 for _ in range(len(v_2))]
+        data_len = len(d_1[v_1])
+        for one_data in d_1[v_1]:
+            add_code_before = "import json\n"
             # definition part
-            for key in d.keys():
-                if key != v:
-                    str_line = "\t" + str(key) + " = " + str(d[key]) + "\n"
+            for key in d_1.keys():
+                if key != v_1:
+                    str_line = str(key) + " = " + str(d_1[key]) + "\n"
                     add_code_before += str_line
                 else:
-                    str_line = "\t" + str(v) + " = hq\n"
+                    str_line = str(v_1) + " = %s\n" % one_data
                     add_code_before += str_line
-            add_code_before += "\tresult_save_dict = {}\n"
-            add_code_before += "\tresult_save_dict['target'] = '%s'\n" % v_1
+            add_code_before += "result_save_dict = {}\n"
+            add_code_before += "result_save_dict['target'] = '%s'\n" % v_1
 
             # fragment part
             fragment_final = ""
-            for line in fragment2.splitlines():
-                fragment_final += '\t\t' + line + "\n"
-            fragment = "\ttry: " + fragment_final
-            exception_info = """\texcept Exception as e:\n\t\tresult_save_dict['runnable'] = False
-            \n\t\twith open('results/f2_result_dict.json', 'w') as result_file:\n\t\t\tjson.dump(result_save_dict, result_file)
-            """
-            fragment = fragment + exception_info
+            for line in fragment1.splitlines():
+                fragment_final += '\t' + line + "\n"
+            fragment = "try: " + fragment_final
 
             # result process part
             add_code_after = "\n\tresult_save_dict['runnable'] = True\n"
-            for key in d:
-                str_line = "\tresult_save_dict['%s'] = %s" % (key, key) + "\n"
+            for key in d_1:
+                str_line = "\tresult_save_dict['%s'] = %s\n" % (key, key)
                 add_code_after += str_line
 
             # result save part
             save_line = """
-                        \n\timport json
-                        \n\twith open('results/f2_result_dict.json', 'w') as result_file:
-                            \n\t\tjson.dump(result_save_dict, result_file)"""
-            # print(add_code_after)
-            run_code = add_code_before + fragment + add_code_after + save_line
-            # print(run_code)
+                            \n\timport json
+                            \n\twith open('%s', 'w') as result_file:
+                                \n\t\tjson.dump(result_save_dict, result_file)
+                                """ % f1_result_save_path
+
+            add_code_after = add_code_after + save_line
+            exception_info = """\nexcept Exception as e:\n\tresult_save_dict['runnable'] = False
+                \n\twith open('%s', 'w') as result_file:\n\t\tjson.dump(result_save_dict, result_file)
+                """ % f1_result_save_path
+
+            run_code = add_code_before + fragment + add_code_after + exception_info
             code_run(run_code)
+            ####################################### code 2 #######################################
+            for part in range(len(v_2)):
+
+                d = d_2[part]
+                v = v_2[part]
+                add_code_before = "import json\n"
+                for key in d.keys():
+                    if key != v:
+                        str_line = str(key) + " = " + str(d[key]) + "\n"
+                        add_code_before += str_line
+                    else:
+                        str_line = str(v) + " = %s\n" % one_data
+                        add_code_before += str_line
+                add_code_before += "result_save_dict = {}\n"
+                add_code_before += "result_save_dict['target'] = '%s'\n" % v
+
+                # fragment part
+                fragment_final = ""
+                for line in fragment2.splitlines():
+                    fragment_final += '\t' + line + "\n"
+                fragment = "try: " + fragment_final
+
+                # result process part
+                add_code_after = "\n\tresult_save_dict['runnable'] = True\n"
+                for key in d:
+                    str_line = "\tresult_save_dict['%s'] = %s" % (key, key) + "\n"
+                    add_code_after += str_line
+
+                save_line = """
+                               \n\timport json
+                               \n\twith open('%s', 'w') as result_file:
+                                \n\t\tjson.dump(result_save_dict, result_file)""" % f2_result_save_path
+                add_code_after = add_code_after + save_line
+
+                exception_info = """\nexcept Exception as e:\n\tresult_save_dict['runnable'] = False
+                \n\twith open('%s', 'w') as result_file:\n\t\tjson.dump(result_save_dict, result_file)
+                """ % f2_result_save_path
+                run_code = add_code_before + fragment + add_code_after + exception_info
+                code_run(run_code)
+
+                # analyze results
+                if analyze_results(save_dict1, save_dict2, f1_result_save_path, f2_result_save_path):
+                    result_v2_list[part] += 1
+
+        # find swap name
+        for i in range(len(result_v2_list)):
+            if result_v2_list[i] == data_len:
+                swap_list.append([v_1, v_2[i]])
+    print("swap list:")
+    print(swap_list)
+    return swap_list
 
 
 def code_run(code):
@@ -197,26 +214,26 @@ def code_run(code):
 
 if __name__ == '__main__':
     fragment2 = """
-while i < l:
-    cd = td[i][2] + ss[pi[i + 1]]
-    if cd < ss[i]:
-        ss[i + 1] = ss[i]
-        f = f + [[0, i]]
-    else:
-        ss[i + 1] = cd
-        f = f + [[1, pi[i + 1]]]
-    i += 1
+cd = td[i] + ss[pi[i + 1]]
+if cd < ss[i]:
+    ss[i + 1] = ss[i]
+    f = f + [[0, i]]
+else:
+    ss[i + 1] = cd
+    f = f + [[1, pi[i + 1]]]
     """
 
     fragment1 = """
-for i in range(data_len):
-    current_data = save_set[previous_index[i + 1]] + test_data[i][2]
-    if current_data >= save_set[i]:
-        save_set[i + 1] = current_data
-        flag.append([1, previous_index[i + 1]])
-    else:
-        save_set[i + 1] = save_set[i]
-        flag.append([0, i])
+current_data = save_set[previous_index[i + 1]] + test_data[i]
+if current_data >= save_set[i]:
+    save_set[i + 1] = current_data
+    flag.append([1, previous_index[i + 1]])
+else:
+    save_set[i + 1] = save_set[i]
+    flag.append([0, i])
         """
+    data_json1 = "v1_dict.json"
+    data_json2 = "v2_dict.json"
     dic_json = "data_dict.json"
-    code_generation(fragment1, fragment2, dic_json)
+    code_generation(data_json1, data_json2, fragment1, fragment2, dic_json)
+    # data_preparation(data_json1, data_json2, dic_json)
