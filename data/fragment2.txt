@@ -1,0 +1,7 @@
+cd = td[i] + ss[pi[i + 1]]
+if cd < ss[i]:
+    ss[i + 1] = ss[i]
+    f = f + [[0, i]]
+else:
+    ss[i + 1] = cd
+    f = f + [[1, pi[i + 1]]]
