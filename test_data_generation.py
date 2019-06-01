@@ -77,10 +77,13 @@ def data_preparation(dic_json1, dic_json2, test_path):
 def generate_code():
     parser = argparse.ArgumentParser()
     parser.add_argument("--d1_path", type=str,
+                        default="data/v1_dict.json",
                         help="data1 path")
     parser.add_argument("--d2_path", type=str,
+                        default="data/v2_dict.json",
                         help="data2 path")
     parser.add_argument("--save_path", type=str,
+                        default="data/data_dict.json",
                         help="path of the save file")
     args = parser.parse_args()
     d1_path = args.d1_path

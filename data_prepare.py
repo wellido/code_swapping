@@ -14,8 +14,8 @@ for j in range(len(v2_names)):
     v2_dict[v2_names[j]] = v2_values[j]
 
 import json
-with open('v1_dict.json', 'w') as result_file:
-    json.dump(v1_dict, result_file)
+with open('data/v1_dict.json', 'w') as result_file:
+    json.dump(v1_dict, result_file, indent=4)
 
-with open('v2_dict.json', 'w') as result_file:
-    json.dump(v2_dict, result_file)
+with open('data/v2_dict.json', 'w') as result_file:
+    json.dump(v2_dict, result_file, indent=4)
