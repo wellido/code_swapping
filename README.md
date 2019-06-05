@@ -2,9 +2,20 @@
 
 Step 6: Swap fragments (Python 3.6 version)
 
-Requrements: 
+### Requrements: 
 1. Two fragments with the same variable numbers and types, like [fragment1](https://github.com/wellido/code_swapping/blob/master/data/fragment1.txt) and [fragment2](https://github.com/wellido/code_swapping/blob/master/data/fragment2.txt).
-2. Variables json, like [variable1](https://github.com/wellido/code_swapping/blob/master/data/v1_dict.json).
+2. Variables json, like [variable1](https://github.com/wellido/code_swapping/blob/master/data/v1_dict.json). Need to save the variables names and the values returning before this fragment in order to judge the type.
+3. [*faker*](https://github.com/joke2k/faker)
+
+### Details of step 6 in this implementation:
+**a**. Load variable *V* from the json file, [code](https://github.com/wellido/code_swapping/blob/d96ce03d7a99a5b7f8851526e5dbb3b3f483e575/runnable_code_generation.py#L24-L27). 
+   Analyze the variable types, [code](https://github.com/wellido/code_swapping/blob/d96ce03d7a99a5b7f8851526e5dbb3b3f483e575/utils.py#L13-L41).
+
+**b - c**. For each variable in fragment1, find the variables in fragment2 whose types are the same as the first one, [code](https://github.com/wellido/code_swapping/blob/d96ce03d7a99a5b7f8851526e5dbb3b3f483e575/test_data_generation.py#L62-L68)
+
+**d - e**. Set a maximum generation number (here is 10) and use the [*faker*](https://github.com/joke2k/faker) library to generate test data, [code](https://github.com/wellido/code_swapping/blob/d96ce03d7a99a5b7f8851526e5dbb3b3f483e575/utils.py#L44-L68), then use control variable method to find the swap variables list, [code](https://github.com/wellido/code_swapping/blob/d96ce03d7a99a5b7f8851526e5dbb3b3f483e575/runnable_code_generation.py#L5-L136).
+
+**finally**. Swap code according to the swap list, [code](https://github.com/wellido/code_swapping/blob/d96ce03d7a99a5b7f8851526e5dbb3b3f483e575/swap_code.py#L5-L11).
 
 ### How to use: 
 
